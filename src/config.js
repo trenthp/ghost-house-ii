@@ -32,7 +32,7 @@ export function shareUrl(house) {
   u.searchParams.set('lat', house.lat.toFixed(6));
   u.searchParams.set('lng', house.lng.toFixed(6));
   u.searchParams.set('r', String(house.radius));
-  if (house.name) u.searchParams.set('name', house.name);
+  if (house.name && house.name !== 'the haunted house') u.searchParams.set('name', house.name);
   return u.toString();
 }
 

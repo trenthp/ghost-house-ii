@@ -268,7 +268,7 @@ function hauntHere(p) {
   }
   house = saveHouse({ lat: latitude, lng: longitude, radius: +f.radius.value, name: f.name.value });
   showShare(house);
-  $('here-status').textContent = `✅ Saved (±${formatDistance(accuracy)}). ${capitalize(house.name)} is now haunted. Tap ← Back, then Enter.`;
+  $('here-status').textContent = `✅ Saved (±${formatDistance(accuracy)}). ${house.name === 'the haunted house' ? 'This spot' : capitalize(house.name)} is now haunted. Tap ← Back, then Enter.`;
 }
 
 function locationErrorText(err) {
