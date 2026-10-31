@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#0b0614">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Ghost House</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Creepster&display=swap">
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+  </script>
+</head>
+<body>
+  <video id="camera" playsinline muted autoplay></video>
+  <canvas id="scene"></canvas>
+  <div id="vignette"></div>
+
+  <div id="hud" hidden>
+    <div id="status" class="chip">Listening for the spirits…</div>
+    <div id="radar" hidden>
+      <div id="arrow">➤</div>
+      <div id="distance"></div>
+    </div>
+    <div id="bottom">
+      <span id="score" class="chip">👻 0 banished</span>
+      <span id="gps" class="chip small"></span>
+    </div>
+    <div id="hint" class="chip small" hidden></div>
+  </div>
+
+  <section id="intro" class="panel">
+    <h1>Ghost House</h1>
+    <p class="lede">The dead haunt one house, and one house only.<br>Get close… if you dare.</p>
+    <p id="house-label" class="house"></p>
+    <button id="start" class="primary">Enter</button>
+    <button id="open-setup" class="link">Set up the haunted house</button>
+    <p class="fine">Needs camera, location &amp; motion access. Tap a ghost to banish it.</p>
+  </section>
+
+  <section id="setup" class="panel" hidden>
+    <h2>Choose the haunted house</h2>
+    <p class="fine">Stand at the house and use your current location, or enter coordinates.</p>
+    <button id="use-here" class="primary">📍 Haunt where I'm standing</button>
+    <p id="here-status" class="fine"></p>
+    <label>Name <input id="f-name" type="text" placeholder="The Old Manor" maxlength="40"></label>
+    <div class="row">
+      <label>Latitude <input id="f-lat" type="number" step="any" inputmode="decimal"></label>
+      <label>Longitude <input id="f-lng" type="number" step="any" inputmode="decimal"></label>
+    </div>
+    <label>Haunted radius: <span id="r-val">40</span> m
+      <input id="f-radius" type="range" min="10" max="200" step="5" value="40">
+    </label>
+    <button id="save" class="primary">Save house</button>
+    <div id="share" hidden>
+      <p class="fine">Share this link so others find the same house:</p>
+      <input id="share-url" type="text" readonly>
+      <button id="copy" class="link">Copy / share link</button>
+    </div>
+    <button id="close-setup" class="link">← Back</button>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
