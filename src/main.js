@@ -214,17 +214,72 @@ f.radius.addEventListener('input', () => { $('r-val').textContent = f.radius.val
 
 $('use-here').addEventListener('click', () => {
   const s = $('here-status');
-  s.textContent = 'Finding you…';
-  navigator.geolocation.getCurrentPosition(
-    (p) => {
-      f.lat.value = p.coords.latitude.toFixed(6);
-      f.lng.value = p.coords.longitude.toFixed(6);
-      s.textContent = `Got it (±${formatDistance(p.coords.accuracy)}). Save to haunt this spot.`;
-    },
-    (e) => { s.textContent = `Couldn’t get location: ${e.message}`; },
-    { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 },
-  );
+  const btn = $('use-here');
+  if (!window.isSecureContext || !('geolocation' in navigator)) {
+    s.textContent = 'Location needs a secure (https://) page. Open the GitHub Pages link, not a file or http:// link.';
+    return;
+  }
+  btn.disabled = true;
+  s.textContent = 'Finding you… (stay still, ideally outdoors)';
+
+  // Watch for a few seconds and keep the most accurate fix, instead of one
+  // all-or-nothing high-accuracy request (which often times out on phones).
+  let best = null;
+  let id = null;
+  let done = false;
+  let timer = null;
+  const finish = (err) => {
+    if (done) return;
+    done = true;
+    if (id != null) navigator.geolocation.clearWatch(id);
+    clearTimeout(timer);
+    btn.disabled = false;
+    if (best) return hauntHere(best);
+    s.textContent = locationErrorText(err);
+  };
+  const onFix = (p) => {
+    if (!best || p.coords.accuracy < best.coords.accuracy) best = p;
+    s.textContent = `Locking on… ±${formatDistance(best.coords.accuracy)}`;
+    if (best.coords.accuracy <= 15) finish();
+  };
+  const onErr = (err) => {
+    if (err.code === 1) return finish(err); // denied: no point retrying
+    // High-accuracy failed: fall back to whatever the phone can give.
+    if (!best) {
+      navigator.geolocation.getCurrentPosition(
+        (p) => { onFix(p); finish(); },
+        (e) => finish(e),
+        { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 },
+      );
+    }
+  };
+  id = navigator.geolocation.watchPosition(onFix, onErr, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+  timer = setTimeout(() => finish(best ? null : { code: 3 }), 12000);
 });
+
+function hauntHere(p) {
+  const { latitude, longitude, accuracy } = p.coords;
+  f.lat.value = latitude.toFixed(6);
+  f.lng.value = longitude.toFixed(6);
+  // Bad GPS → make sure the radius at least covers the uncertainty.
+  if (+f.radius.value < accuracy * 1.5) {
+    f.radius.value = Math.min(200, Math.ceil((accuracy * 1.5) / 5) * 5);
+    $('r-val').textContent = f.radius.value;
+  }
+  house = saveHouse({ lat: latitude, lng: longitude, radius: +f.radius.value, name: f.name.value });
+  showShare(house);
+  $('here-status').textContent = `✅ Saved (±${formatDistance(accuracy)}). ${house.name === 'the haunted house' ? 'This spot' : capitalize(house.name)} is now haunted. Tap ← Back, then Enter.`;
+}
+
+function locationErrorText(err) {
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  if (err && err.code === 1) {
+    return ios
+      ? 'Location is blocked. On iPhone: Settings → Privacy & Security → Location Services → turn it on, and set Safari Websites to “While Using”. Then reload this page.'
+      : 'Location is blocked. Tap the icon left of the address bar → Permissions → allow Location, and make sure phone location is on. Then reload.';
+  }
+  return 'Couldn’t get a GPS fix. Step outside or near a window and try again, or type the coordinates below.';
+}
 
 $('save').addEventListener('click', () => {
   const lat = parseFloat(f.lat.value), lng = parseFloat(f.lng.value);
